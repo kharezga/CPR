@@ -3,7 +3,7 @@ import numpy as np
 
 
 class SearchEngine:
-    def __init__(self, min_ratio=4, max_ratio=5, debug=False):
+    def __init__(self, min_ratio=4, max_ratio=5, debug=True):
         self.min_ratio = min_ratio
         self.max_ratio = max_ratio
         self.debug = debug
