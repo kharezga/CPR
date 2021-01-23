@@ -2,10 +2,10 @@ import pytesseract
 import imutils
 import cv2 as cv
 import numpy as np
+import xlsxwriter
 from skimage.segmentation import clear_border
 import tkinter as tk
 from tkinter import filedialog, Text
-import os
 
 
 def cleanup_text(text):
@@ -141,13 +141,12 @@ class ExtractPlateFromPhoto:
         return lpText, lpCnt
 
 
-
-
-
 class GUI:
-    def __init__(self, image, ocr):
+    def __init__(self, image, ocr, license_plate, license_counter):
         self.image = image
         self.ocr = ocr
+        self.license_plate = license_plate
+        self.license_counter = license_counter
 
     def generate_ui(self):
         root = tk.Tk()
@@ -163,8 +162,13 @@ class GUI:
                              command=self.load_file)
         openFile.pack(side="left")
 
-        recognize = tk.Button(root, text="Recognize", padx=210, pady=5, fg="white", bg="#444746", command=self.recognize)
-        recognize.pack(side="right")
+        export = tk.Button(root, text="Export to Excel", padx=50, pady=5, fg="white", bg="#444746",
+                           command=self.create_csv)
+        export.pack(side="right")
+
+        recognize = tk.Button(root, text="Recognize", padx=100, pady=5, fg="white", bg="#444746",
+                              command=self.recognize)
+        recognize.pack(side="top")
 
         root.mainloop()
 
@@ -179,33 +183,41 @@ class GUI:
         return self.image
 
     def recognize(self):
-        (lpText, lpCnt) = self.ocr.OCR(self.image, 7, True)
+        (self.license_plate, self.license_counter) = self.ocr.OCR(self.image, 7, True)
 
-        if lpText is not None and lpCnt is not None:
-            box = cv.boxPoints(cv.minAreaRect(lpCnt))
+        if self.license_plate is not None and self.license_counter is not None:
+            box = cv.boxPoints(cv.minAreaRect(self.license_counter))
             box = box.astype("int")
             cv.drawContours(self.image, [box], -1, (0, 255, 0), 2)
-            (x, y, w, h) = cv.boundingRect(lpCnt)
-            cv.putText(self.image, cleanup_text(lpText), (x, y - 15), cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2)
+            (x, y, w, h) = cv.boundingRect(self.license_counter)
+            cv.putText(self.image, cleanup_text(self.license_plate), (x, y - 15), cv.FONT_HERSHEY_SIMPLEX, 0.75,
+                       (255, 0, 255), 2)
 
-            print("[INFO] {}".format(lpText))
+            print("[INFO] {}".format(self.license_plate))
             cv.imshow("Output ANPR", self.image)
             cv.waitKey(0)
             cv.destroyAllWindows()
+
+    def create_csv(self):
+
+        workbook = xlsxwriter.Workbook('Plates.xlsx')
+        worksheet = workbook.add_worksheet()
+        row = 1
+        col = 1
+
+        worksheet.write(row, col, "License plate")
+        worksheet.write(row, col + 1, self.license_plate)
+        row += 1
+
+        workbook.close()
 
 
 # TODO Describe main method
 def main():
     plate = ExtractPlateFromPhoto(0)  # debug 0
-    gui = GUI(0, plate)
+    gui = GUI(None, plate, None, None)
 
     gui.generate_ui()
-
-    # image = cv.imread('001.jpg')
-    # image = imutils.resize(image, width=600)
-
-
-
 
 
 if __name__ == "__main__":
