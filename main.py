@@ -3,6 +3,9 @@ import imutils
 import cv2 as cv
 import numpy as np
 from skimage.segmentation import clear_border
+import tkinter as tk
+from tkinter import filedialog, Text
+import os
 
 
 def cleanup_text(text):
@@ -13,6 +16,11 @@ def cleanup_text(text):
                                     Text to be cleared
                                 """
     return "".join([c if ord(c) < 128 else "" for c in text]).strip()
+
+
+class GUI:
+    def __init__(self, root):
+        self.root = tk.Tk()
 
 
 class ExtractPlateFromPhoto:
@@ -133,24 +141,71 @@ class ExtractPlateFromPhoto:
         return lpText, lpCnt
 
 
+
+
+
+class GUI:
+    def __init__(self, image, ocr):
+        self.image = image
+        self.ocr = ocr
+
+    def generate_ui(self):
+        root = tk.Tk()
+
+        # specify window properties
+        canvas = tk.Canvas(root, height=700, width=700, bg="#444746")
+        canvas.pack()
+
+        frame = tk.Frame(root, bg="#0cc769")
+        frame.place(relwidth=0.8, relheight=0.8, relx=0.1, rely=0.1)
+
+        openFile = tk.Button(root, text="Load Licence Plate", padx=50, pady=5, fg="white", bg="#444746",
+                             command=self.load_file)
+        openFile.pack(side="left")
+
+        recognize = tk.Button(root, text="Recognize", padx=210, pady=5, fg="white", bg="#444746", command=self.recognize)
+        recognize.pack(side="right")
+
+        root.mainloop()
+
+    def load_file(self):
+        path = filedialog.askopenfilename()
+        if len(path) > 0:
+            self.image = cv.imread(path)
+            self.image = imutils.resize(self.image, width=600)
+
+    def get_image(self):
+        self.image
+        return self.image
+
+    def recognize(self):
+        (lpText, lpCnt) = self.ocr.OCR(self.image, 7, True)
+
+        if lpText is not None and lpCnt is not None:
+            box = cv.boxPoints(cv.minAreaRect(lpCnt))
+            box = box.astype("int")
+            cv.drawContours(self.image, [box], -1, (0, 255, 0), 2)
+            (x, y, w, h) = cv.boundingRect(lpCnt)
+            cv.putText(self.image, cleanup_text(lpText), (x, y - 15), cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2)
+
+            print("[INFO] {}".format(lpText))
+            cv.imshow("Output ANPR", self.image)
+            cv.waitKey(0)
+            cv.destroyAllWindows()
+
+
 # TODO Describe main method
 def main():
     plate = ExtractPlateFromPhoto(0)  # debug 0
-    image = cv.imread('001.jpg')
-    image = imutils.resize(image, width=600)
+    gui = GUI(0, plate)
 
-    (lpText, lpCnt) = plate.OCR(image, 7, True)
+    gui.generate_ui()
 
-    if lpText is not None and lpCnt is not None:
-        box = cv.boxPoints(cv.minAreaRect(lpCnt))
-        box = box.astype("int")
-        cv.drawContours(image, [box], -1, (0, 255, 0), 2)
-        (x, y, w, h) = cv.boundingRect(lpCnt)
-        cv.putText(image, cleanup_text(lpText), (x, y - 15), cv.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), 2)
+    # image = cv.imread('001.jpg')
+    # image = imutils.resize(image, width=600)
 
-        print("[INFO] {}".format(lpText))
-        cv.imshow("Output ANPR", image)
-        cv.waitKey(0)
+
+
 
 
 if __name__ == "__main__":
