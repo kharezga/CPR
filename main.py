@@ -6,6 +6,9 @@ import xlsxwriter
 from skimage.segmentation import clear_border
 import tkinter as tk
 from tkinter import filedialog, Text
+from PIL import Image
+from PIL import ImageTk
+from tkinter import *
 
 
 def cleanup_text(text):
@@ -142,11 +145,12 @@ class ExtractPlateFromPhoto:
 
 
 class GUI:
-    def __init__(self, image, ocr, license_plate, license_counter):
+    def __init__(self, image, ocr, license_plate, license_counter, frame):
         self.image = image
         self.ocr = ocr
         self.license_plate = license_plate
         self.license_counter = license_counter
+        self.frame = frame
 
     def generate_ui(self):
         root = tk.Tk()
@@ -155,8 +159,8 @@ class GUI:
         canvas = tk.Canvas(root, height=700, width=700, bg="#444746")
         canvas.pack()
 
-        frame = tk.Frame(root, bg="#0cc769")
-        frame.place(relwidth=0.8, relheight=0.8, relx=0.1, rely=0.1)
+        self.frame = tk.Frame(root, bg="#0cc769")
+        self.frame.place(relwidth=0.8, relheight=0.8, relx=0.1, rely=0.1)
 
         openFile = tk.Button(root, text="Load Licence Plate", padx=50, pady=5, fg="white", bg="#444746",
                              command=self.load_file)
@@ -183,6 +187,7 @@ class GUI:
         return self.image
 
     def recognize(self):
+        counter = 0
         (self.license_plate, self.license_counter) = self.ocr.OCR(self.image, 7, True)
 
         if self.license_plate is not None and self.license_counter is not None:
@@ -197,6 +202,9 @@ class GUI:
             cv.imshow("Output ANPR", self.image)
             cv.waitKey(0)
             cv.destroyAllWindows()
+
+            label = tk.Label(self.frame, text="License plate: " + self.license_plate, bg="gray")
+            label.pack()
 
     def create_csv(self):
 
@@ -215,7 +223,7 @@ class GUI:
 # TODO Describe main method
 def main():
     plate = ExtractPlateFromPhoto(0)  # debug 0
-    gui = GUI(None, plate, None, None)
+    gui = GUI(None, plate, None, None, None)
 
     gui.generate_ui()
 
