@@ -5,10 +5,7 @@ import numpy as np
 import xlsxwriter
 from skimage.segmentation import clear_border
 import tkinter as tk
-from tkinter import filedialog, Text
-from PIL import Image
-from PIL import ImageTk
-from tkinter import *
+from tkinter import filedialog
 
 
 def cleanup_text(text):
@@ -19,11 +16,6 @@ def cleanup_text(text):
                                     Text to be cleared
                                 """
     return "".join([c if ord(c) < 128 else "" for c in text]).strip()
-
-
-class GUI:
-    def __init__(self, root):
-        self.root = tk.Tk()
 
 
 class ExtractPlateFromPhoto:
@@ -222,7 +214,7 @@ class GUI:
 
 # TODO Describe main method
 def main():
-    plate = ExtractPlateFromPhoto(0)  # debug 0
+    plate = ExtractPlateFromPhoto(0)
     gui = GUI(None, plate, None, None, None)
 
     gui.generate_ui()
