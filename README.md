@@ -8,6 +8,6 @@ CRP is a program that is designed to recognize vehicle license plates which are 
 ### Things that needs to be done
     
 - [x] First successful plate recognition   
-- [ ] Implement User Interface
-- [ ] Prepare proper documentation of code
-- [ ] Testing software which diffrent photos of vivid quality
+- [x] Implement User Interface
+- [x] Prepare proper documentation of code
+- [x] Testing software which diffrent photos of vivid quality
